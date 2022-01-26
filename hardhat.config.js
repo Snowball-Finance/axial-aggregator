@@ -21,8 +21,12 @@ if (!process.env.PK_DEPLOYER) {
 if (!process.env.AVALANCHE_DEPLOY_RPC) {
   console.log('WARNING: Missing RPC provider for deployer')
 }
+if(!process.env.AVALANCHE_DEPLOY_RPC_TEST){
+  console.log('WARNING: Missing Test RPC provider')
+}
 const PK_DEPLOYER = process.env.PK_DEPLOYER || "1111111111111111111111111111111111111111111111111111111111"
 const AVALANCHE_DEPLOY_RPC = process.env.AVALANCHE_DEPLOY_RPC || process.env.AVALANCHE_FORK_RPC
+const AVALANCHE_DEPLOY_RPC_TEST = process.env.AVALANCHE_DEPLOY_RPC_TEST || ""
 
 // to verify all contracts use
 // find ./deployments/mainnet -maxdepth 1 -type f -not -path '*/\.*' -path "*.json" | xargs -L1 npx hardhat verifyContract --deployment-file-path --network mainnet
@@ -72,6 +76,15 @@ module.exports = {
       chainId: 43114,
       gasPrice: 225000000000,
       url: AVALANCHE_DEPLOY_RPC,
+      accounts: [
+        PK_DEPLOYER
+      ]
+    },
+    testnet: {
+      chainId: 43113,
+      gas: 225000000000, 
+      saveDeployments: true,
+      url: AVALANCHE_DEPLOY_RPC_TEST,
       accounts: [
         PK_DEPLOYER
       ]

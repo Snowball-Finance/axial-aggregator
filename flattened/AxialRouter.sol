@@ -6,31 +6,30 @@
 // File contracts/lib/BytesToTypes.sol
 
 // From https://github.com/pouladzade/Seriality/blob/master/src/BytesToTypes.sol (Licensed under Apache2.0)
-
 pragma solidity >=0.7.0;
 
 library BytesToTypes {
 
     function bytesToAddress(uint _offst, bytes memory _input) internal pure returns (address _output) {
-        
+
         assembly {
             _output := mload(add(_input, _offst))
         }
     }
 
     function bytesToUint256(uint _offst, bytes memory _input) internal pure returns (uint256 _output) {
-        
+
         assembly {
             _output := mload(add(_input, _offst))
         }
-    } 
+    }
 }
 
 
 // File contracts/lib/BytesManipulation.sol
 
-pragma solidity >=0.7.0;
 
+pragma solidity >=0.7.0;
 library BytesManipulation {
 
     function toBytes(uint256 x) internal pure returns (bytes memory b) {
@@ -65,12 +64,13 @@ library BytesManipulation {
 
     function bytesToUint256(uint _offst, bytes memory _input) internal pure returns (uint256) {
         return BytesToTypes.bytesToUint256(_offst, _input);
-    } 
+    }
 
 }
 
 
 // File contracts/interface/IAdapter.sol
+
 
 pragma solidity >=0.7.0;
 
@@ -84,27 +84,30 @@ interface IAdapter {
 
 // File contracts/interface/IERC20.sol
 
+
 pragma solidity >=0.7.0;
 
 interface IERC20 {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address,address,uint);
+    event Transfer(address,address,uint);
     function name() external view returns (string memory);
-    function nonces(address) external view returns (uint);
     function decimals() external view returns (uint8);
-    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external;
-    function transferFrom(address from, address to, uint value) external returns (bool);
-    function allowance(address owner, address spender) external view returns (uint);
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function balanceOf(address owner) external view returns (uint); 
+    function transferFrom(address,address,uint) external returns (bool);
+    function allowance(address,address) external view returns (uint);
+    function approve(address,uint) external returns (bool);
+    function transfer(address,uint) external returns (bool);
+    function balanceOf(address) external view returns (uint);
+    function nonces(address) external view returns (uint);  // Only tokens that support permit
+    function permit(address,address,uint256,uint256,uint8,bytes32,bytes32) external;  // Only tokens that support permit
+    function swap(address,uint256) external;  // Only Avalanche bridge tokens
+    function swapSupply(address) external view returns (uint);  // Only Avalanche bridge tokens
 }
 
 
 // File contracts/interface/IWETH.sol
 
-pragma solidity >=0.7.0;
 
+pragma solidity >=0.7.0;
 interface IWETH is IERC20 {
     function withdraw(uint256 amount) external;
     function deposit() external payable;
@@ -112,6 +115,7 @@ interface IWETH is IERC20 {
 
 
 // File contracts/lib/SafeMath.sol
+
 
 pragma solidity >=0.7.0;
 
@@ -135,10 +139,9 @@ library SafeMath {
 // File contracts/lib/SafeERC20.sol
 
 // This is a simplified version of OpenZepplin's SafeERC20 library
+
 pragma solidity >=0.7.0;
 pragma experimental ABIEncoderV2;
-
-
 /**
  * @title SafeERC20
  * @dev Wrappers around ERC20 operations that throw on failure (when the token
@@ -218,6 +221,7 @@ library SafeERC20 {
 
 // File contracts/lib/Context.sol
 
+
 pragma solidity >=0.7.0;
 
 /*
@@ -244,8 +248,9 @@ abstract contract Context {
 
 // File contracts/lib/Ownable.sol
 
-pragma solidity >=0.7.0;
 
+
+pragma solidity >=0.7.0;
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -312,9 +317,8 @@ abstract contract Ownable is Context {
 
 
 // File contracts/AxialRouter.sol
-
-pragma solidity >=0.7.0;
-
+ 
+pragma solidity >=0.7.0; 
 contract AxialRouter is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -329,12 +333,12 @@ contract AxialRouter is Ownable {
     address[] public ADAPTERS;
 
     event Recovered(
-        address indexed _asset, 
+        address indexed _asset,
         uint amount
     );
 
     event UpdatedTrustedTokens(
-	    address[] _newTrustedTokens
+            address[] _newTrustedTokens
     );
 
     event UpdatedAdapters(
@@ -347,14 +351,14 @@ contract AxialRouter is Ownable {
     );
 
     event UpdatedFeeClaimer(
-        address _oldFeeClaimer, 
-        address _newFeeClaimer 
+        address _oldFeeClaimer,
+        address _newFeeClaimer
     );
 
     event AxialSwap(
-        address indexed _tokenIn, 
-        address indexed _tokenOut, 
-        uint _amountIn, 
+        address indexed _tokenIn,
+        address indexed _tokenOut,
+        uint _amountIn,
         uint _amountOut
     );
 
@@ -399,8 +403,8 @@ contract AxialRouter is Ownable {
     }
 
     constructor(
-        address[] memory _adapters, 
-        address[] memory _trustedTokens, 
+        address[] memory _adapters,
+        address[] memory _trustedTokens,
         address _feeClaimer
     ) {
         setTrustedTokens(_trustedTokens);
@@ -461,7 +465,7 @@ contract AxialRouter is Ownable {
     receive() external payable {}
 
 
-    // -- HELPERS -- 
+    // -- HELPERS --
 
     function _applyFee(uint _amountIn, uint _fee) internal view returns (uint) {
         require(_fee>=MIN_FEE, 'AxialRouter: Insufficient fee');
@@ -500,8 +504,8 @@ contract AxialRouter is Ownable {
         Offer memory _queries
     ) internal pure returns (Offer memory) {
         return Offer(
-            _queries.amounts, 
-            _queries.adapters, 
+            _queries.amounts,
+            _queries.adapters,
             _queries.path
         );
     }
@@ -513,9 +517,9 @@ contract AxialRouter is Ownable {
         OfferWithGas memory _queries
     ) internal pure returns (OfferWithGas memory) {
         return OfferWithGas(
-            _queries.amounts, 
-            _queries.adapters, 
-            _queries.path, 
+            _queries.amounts,
+            _queries.adapters,
+            _queries.path,
             _queries.gasEstimate
         );
     }
@@ -524,9 +528,9 @@ contract AxialRouter is Ownable {
      * Appends Query elements to Offer struct
      */
     function _addQuery(
-        Offer memory _queries, 
-        uint256 _amount, 
-        address _adapter, 
+        Offer memory _queries,
+        uint256 _amount,
+        address _adapter,
         address _tokenOut
     ) internal pure {
         _queries.path = BytesManipulation.mergeBytes(_queries.path, BytesManipulation.toBytes(_tokenOut));
@@ -538,10 +542,10 @@ contract AxialRouter is Ownable {
      * Appends Query elements to Offer struct
      */
     function _addQueryWithGas(
-        OfferWithGas memory _queries, 
-        uint256 _amount, 
-        address _adapter, 
-        address _tokenOut, 
+        OfferWithGas memory _queries,
+        uint256 _amount,
+        address _adapter,
+        address _tokenOut,
         uint _gasEstimate
     ) internal pure {
         _queries.path = BytesManipulation.mergeBytes(_queries.path, BytesManipulation.toBytes(_tokenOut));
@@ -580,8 +584,8 @@ contract AxialRouter is Ownable {
      */
     function _formatOffer(Offer memory _queries) internal pure returns (FormattedOffer memory) {
         return FormattedOffer(
-            _formatAmounts(_queries.amounts), 
-            _formatAddresses(_queries.adapters), 
+            _formatAmounts(_queries.amounts),
+            _formatAddresses(_queries.adapters),
             _formatAddresses(_queries.path)
         );
     }
@@ -591,9 +595,9 @@ contract AxialRouter is Ownable {
      */
     function _formatOfferWithGas(OfferWithGas memory _queries) internal pure returns (FormattedOfferWithGas memory) {
         return FormattedOfferWithGas(
-            _formatAmounts(_queries.amounts), 
-            _formatAddresses(_queries.adapters), 
-            _formatAddresses(_queries.path), 
+            _formatAmounts(_queries.amounts),
+            _formatAddresses(_queries.adapters),
+            _formatAddresses(_queries.path),
             _queries.gasEstimate
         );
     }
@@ -606,8 +610,8 @@ contract AxialRouter is Ownable {
      * Query single adapter
      */
     function queryAdapter(
-        uint256 _amountIn, 
-        address _tokenIn, 
+        uint256 _amountIn,
+        address _tokenIn,
         address _tokenOut,
         uint8 _index
     ) external view returns (uint256) {
@@ -620,8 +624,8 @@ contract AxialRouter is Ownable {
      * Query specified adapters
      */
     function queryNoSplit(
-        uint256 _amountIn, 
-        address _tokenIn, 
+        uint256 _amountIn,
+        address _tokenIn,
         address _tokenOut,
         uint8[] calldata _options
     ) public view returns (Query memory) {
@@ -629,8 +633,8 @@ contract AxialRouter is Ownable {
         for (uint8 i; i<_options.length; i++) {
             address _adapter = ADAPTERS[_options[i]];
             uint amountOut = IAdapter(_adapter).query(
-                _amountIn, 
-                _tokenIn, 
+                _amountIn,
+                _tokenIn,
                 _tokenOut
             );
             if (i==0 || amountOut>bestQuery.amountOut) {
@@ -644,16 +648,16 @@ contract AxialRouter is Ownable {
      * Query all adapters
      */
     function queryNoSplit(
-        uint256 _amountIn, 
-        address _tokenIn, 
+        uint256 _amountIn,
+        address _tokenIn,
         address _tokenOut
     ) public view returns (Query memory) {
         Query memory bestQuery;
         for (uint8 i; i<ADAPTERS.length; i++) {
             address _adapter = ADAPTERS[i];
             uint amountOut = IAdapter(_adapter).query(
-                _amountIn, 
-                _tokenIn, 
+                _amountIn,
+                _tokenIn,
                 _tokenOut
             );
             if (i==0 || amountOut>bestQuery.amountOut) {
@@ -668,9 +672,9 @@ contract AxialRouter is Ownable {
      * Takes gas-cost into account
      */
     function findBestPathWithGas(
-        uint256 _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
+        uint256 _amountIn,
+        address _tokenIn,
+        address _tokenOut,
         uint _maxSteps,
         uint _gasPrice
     ) external view returns (FormattedOfferWithGas memory) {
@@ -683,11 +687,11 @@ contract AxialRouter is Ownable {
         // Leave result nWei to preserve digits for assets with low decimal places
         uint tknOutPriceNwei = gasQuery.amounts[gasQuery.amounts.length-1].mul(_gasPrice/1e9);
         queries = _findBestPathWithGas(
-            _amountIn, 
-            _tokenIn, 
-            _tokenOut, 
+            _amountIn,
+            _tokenIn,
+            _tokenOut,
             _maxSteps,
-            queries, 
+            queries,
             tknOutPriceNwei
         );
         // If no paths are found return empty struct
@@ -696,14 +700,14 @@ contract AxialRouter is Ownable {
             queries.path = '';
         }
         return _formatOfferWithGas(queries);
-    } 
+    }
 
     function _findBestPathWithGas(
-        uint256 _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
+        uint256 _amountIn,
+        address _tokenIn,
+        address _tokenOut,
         uint _maxSteps,
-        OfferWithGas memory _queries, 
+        OfferWithGas memory _queries,
         uint _tknOutPriceNwei
     ) internal view returns (OfferWithGas memory) {
         OfferWithGas memory bestOption = _cloneOfferWithGas(_queries);
@@ -713,10 +717,10 @@ contract AxialRouter is Ownable {
         if (queryDirect.amountOut!=0) {
             uint gasEstimate = IAdapter(queryDirect.adapter).swapGasEstimate();
             _addQueryWithGas(
-                bestOption, 
-                queryDirect.amountOut, 
-                queryDirect.adapter, 
-                queryDirect.tokenOut, 
+                bestOption,
+                queryDirect.amountOut,
+                queryDirect.adapter,
+                queryDirect.tokenOut,
                 gasEstimate
             );
             bestAmountOut = queryDirect.amountOut;
@@ -738,11 +742,11 @@ contract AxialRouter is Ownable {
                 uint gasEstimate = IAdapter(bestSwap.adapter).swapGasEstimate();
                 _addQueryWithGas(newOffer, bestSwap.amountOut, bestSwap.adapter, bestSwap.tokenOut, gasEstimate);
                 newOffer = _findBestPathWithGas(
-                    bestSwap.amountOut, 
-                    TRUSTED_TOKENS[i], 
-                    _tokenOut, 
-                    _maxSteps, 
-                    newOffer, 
+                    bestSwap.amountOut,
+                    TRUSTED_TOKENS[i],
+                    _tokenOut,
+                    _maxSteps,
+                    newOffer,
                     _tknOutPriceNwei
                 );
                 address tokenOut = BytesManipulation.bytesToAddress(newOffer.path.length, newOffer.path);
@@ -759,16 +763,16 @@ contract AxialRouter is Ownable {
                 }
             }
         }
-        return bestOption;   
+        return bestOption;
     }
 
     /**
      * Return path with best returns between two tokens
      */
     function findBestPath(
-        uint256 _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
+        uint256 _amountIn,
+        address _tokenIn,
+        address _tokenOut,
         uint _maxSteps
     ) public view returns (FormattedOffer memory) {
         require(_maxSteps>0 && _maxSteps<5, 'AxialRouter: Invalid max-steps');
@@ -782,12 +786,12 @@ contract AxialRouter is Ownable {
             queries.path = '';
         }
         return _formatOffer(queries);
-    } 
+    }
 
     function _findBestPath(
-        uint256 _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
+        uint256 _amountIn,
+        address _tokenIn,
+        address _tokenOut,
         uint _maxSteps,
         Offer memory _queries
     ) internal view returns (Offer memory) {
@@ -815,9 +819,9 @@ contract AxialRouter is Ownable {
                 Offer memory newOffer = _cloneOffer(_queries);
                 _addQuery(newOffer, bestSwap.amountOut, bestSwap.adapter, bestSwap.tokenOut);
                 newOffer = _findBestPath(
-                    bestSwap.amountOut, 
-                    TRUSTED_TOKENS[i], 
-                    _tokenOut, 
+                    bestSwap.amountOut,
+                    TRUSTED_TOKENS[i],
+                    _tokenOut,
                     _maxSteps,
                     newOffer
                 );  // Recursive step
@@ -830,7 +834,7 @@ contract AxialRouter is Ownable {
                 }
             }
         }
-        return bestOption;   
+        return bestOption;
     }
 
 
@@ -839,7 +843,7 @@ contract AxialRouter is Ownable {
     function _swapNoSplit(
         Trade calldata _trade,
         address _from,
-        address _to, 
+        address _to,
         uint _fee
     ) internal returns (uint) {
         uint[] memory amounts = new uint[](_trade.path.length);
@@ -847,23 +851,23 @@ contract AxialRouter is Ownable {
             // Transfer fees to the claimer account and decrease initial amount
             amounts[0] = _applyFee(_trade.amountIn, _fee);
             IERC20(_trade.path[0]).safeTransferFrom(
-                _from, 
-                FEE_CLAIMER, 
+                _from,
+                FEE_CLAIMER,
                 _trade.amountIn.sub(amounts[0])
             );
         } else {
             amounts[0] = _trade.amountIn;
         }
         IERC20(_trade.path[0]).safeTransferFrom(
-            _from, 
-            _trade.adapters[0], 
+            _from,
+            _trade.adapters[0],
             amounts[0]
         );
         // Get amounts that will be swapped
         for (uint i=0; i<_trade.adapters.length; i++) {
             amounts[i+1] = IAdapter(_trade.adapters[i]).query(
-                amounts[i], 
-                _trade.path[i], 
+                amounts[i],
+                _trade.path[i],
                 _trade.path[i+1]
             );
         }
@@ -873,17 +877,17 @@ contract AxialRouter is Ownable {
             // All targets are the adapters, expect for the last swap where tokens are sent out
             address targetAddress = i<_trade.adapters.length-1 ? _trade.adapters[i+1] : _to;
             IAdapter(_trade.adapters[i]).swap(
-                amounts[i], 
-                amounts[i+1], 
-                _trade.path[i], 
+                amounts[i],
+                amounts[i+1],
+                _trade.path[i],
                 _trade.path[i+1],
                 targetAddress
             );
         }
         emit AxialSwap(
-            _trade.path[0], 
-            _trade.path[_trade.path.length-1], 
-            _trade.amountIn, 
+            _trade.path[0],
+            _trade.path[_trade.path.length-1],
+            _trade.amountIn,
             amounts[amounts.length-1]
         );
         return amounts[amounts.length-1];
@@ -925,22 +929,22 @@ contract AxialRouter is Ownable {
         Trade calldata _trade,
         address _to,
         uint _fee,
-        uint _deadline, 
+        uint _deadline,
         uint8 _v,
-        bytes32 _r, 
+        bytes32 _r,
         bytes32 _s
     ) external {
         IERC20(_trade.path[0]).permit(
-            msg.sender, 
-            address(this), 
-            _trade.amountIn, 
-            _deadline, 
-            _v, 
-            _r, 
+            msg.sender,
+            address(this),
+            _trade.amountIn,
+            _deadline,
+            _v,
+            _r,
             _s
         );
         swapNoSplit(_trade, _to, _fee);
-    } 
+    }
 
     /**
      * Swap token to AVAX without the need to approve the first token
@@ -949,20 +953,21 @@ contract AxialRouter is Ownable {
         Trade calldata _trade,
         address _to,
         uint _fee,
-        uint _deadline, 
+        uint _deadline,
         uint8 _v,
-        bytes32 _r, 
+        bytes32 _r,
         bytes32 _s
     ) external {
         IERC20(_trade.path[0]).permit(
-            msg.sender, 
-            address(this), 
-            _trade.amountIn, 
-            _deadline, 
-            _v, 
-            _r, 
+            msg.sender,
+            address(this),
+            _trade.amountIn,
+            _deadline,
+            _v,
+            _r,
             _s
         );
         swapNoSplitToAVAX(_trade, _to, _fee);
     }
+
 }

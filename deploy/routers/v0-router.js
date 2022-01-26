@@ -129,10 +129,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       TRUSTED_TOKENS, 
       FEE_CLAIMER
     ])
-    log(`V0) axialRouter`)
-    const deployResult = await deploy("axialRouterV0", {
+    log(`V0) AxialRouter`)
+    const deployResult = await deploy("AxialRouterV0", {
       from: deployer,
-      contract: "axialRouter",
+      contract: "AxialRouter",
       gas: 4000000,
       args: [
         ADAPTERS, 
@@ -151,7 +151,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 		log(`- Deployment skipped, using previous deployment at: ${deployResult.address}`)
 	}
 
-	let axialRouter = await ethers.getContractAt('axialRouter', deployResult.address)
+	let axialRouter = await ethers.getContractAt('AxialRouter', deployResult.address)
 	let deployerSigner = new ethers.Wallet(process.env.PK_DEPLOYER, ethers.provider)
 
 	// Add adapters if some of them are not added
