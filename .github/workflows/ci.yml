@@ -39,9 +39,3 @@ jobs:
         AVALANCHE_FORK_RPC: ${{ secrets.AVALANCHE_FORK_RPC }}
         PK_DEPLOYER: ${{ secrets.PK_DEPLOYER }}
         SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
-
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      continue-on-error: true
-      with:
-        github-token: ${{ secrets.github_token }}
