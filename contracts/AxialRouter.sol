@@ -23,10 +23,10 @@ contract AxialRouter is Ownable {
     address public FEE_CLAIMER;
     address[] public TRUSTED_TOKENS;
     address[] public ADAPTERS;
+    address[] public PRIMARY_ADAPTERS;
 
     /// @dev Tokens to be prioritised for swaps through primary adapters
     mapping(address => bool) PRIMARY_TOKENS;
-    address[] public PRIMARY_ADAPTERS;
 
     event Recovered(
         address indexed _asset, 
@@ -197,7 +197,7 @@ contract AxialRouter is Ownable {
         emit Recovered(address(0), _amount);
     }
 
-    function isPrimaryToken(address _primaryToken) external view returns (bool){
+    function isPrimaryToken(address _primaryToken) public view returns (bool){
         return PRIMARY_TOKENS[_primaryToken];
     }
 
@@ -385,6 +385,29 @@ contract AxialRouter is Ownable {
     }
 
     /**
+     * Query primary adapters
+     */
+    function queryNoSplitPrimary(
+        uint256 _amountIn, 
+        address _tokenIn, 
+        address _tokenOut
+    ) public view returns (Query memory) {
+        Query memory bestQuery;
+        for (uint8 i; i<PRIMARY_ADAPTERS.length; i++) {
+            address _primaryAdapter = PRIMARY_ADAPTERS[i];
+            uint amountOut = IAdapter(_primaryAdapter).query(
+                _amountIn, 
+                _tokenIn, 
+                _tokenOut
+            );
+            if (i==0 || amountOut>bestQuery.amountOut) {
+                bestQuery = Query(_primaryAdapter, _tokenIn, _tokenOut, amountOut);
+            }
+        }
+        return bestQuery;
+    }
+
+    /**
      * Query all adapters
      */
     function queryNoSplit(
@@ -452,7 +475,24 @@ contract AxialRouter is Ownable {
     ) internal view returns (OfferWithGas memory) {
         OfferWithGas memory bestOption = _cloneOfferWithGas(_queries);
         uint256 bestAmountOut;
-        // First check if there is a path directly from tokenIn to tokenOut
+
+        // If tokenIn & tokenOut are primary tokens then use primary adapters
+        if(isPrimaryToken(_tokenIn) && isPrimaryToken(_tokenOut)) {
+            Query memory queryPrimary = queryNoSplitPrimary(_amountIn, _tokenIn, _tokenOut);
+            if(queryPrimary.amountOut != 0) {
+                uint gasEstimate = IAdapter(queryPrimary.adapter).swapGasEstimate();
+                _addQueryWithGas(
+                    bestOption, 
+                    queryPrimary.amountOut, 
+                    queryPrimary.adapter, 
+                    queryPrimary.tokenOut, 
+                    gasEstimate
+                );
+                return bestOption;
+            }
+        }
+
+        // Check if there is a path directly from tokenIn to tokenOut
         Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _tokenOut);
         if (queryDirect.amountOut!=0) {
             uint gasEstimate = IAdapter(queryDirect.adapter).swapGasEstimate();
