@@ -24,6 +24,10 @@ contract AxialRouter is Ownable {
     address[] public TRUSTED_TOKENS;
     address[] public ADAPTERS;
 
+    /// @dev Tokens to be prioritised for swaps through primary adapters
+    mapping(address => bool) PRIMARY_TOKENS;
+    address[] public PRIMARY_ADAPTERS;
+
     event Recovered(
         address indexed _asset, 
         uint amount
@@ -45,6 +49,18 @@ contract AxialRouter is Ownable {
     event UpdatedFeeClaimer(
         address _oldFeeClaimer, 
         address _newFeeClaimer 
+    );
+
+    event UpdatedPrimaryAdapters(
+        address[] _newPrimaryAdapters
+    );
+     
+    event AddedPrimaryToken(
+        address _newPrimaryToken
+    );
+
+    event RemovedPrimaryToken(
+        address _oldPrimaryToken
     );
 
     event AxialSwap(
@@ -131,6 +147,34 @@ contract AxialRouter is Ownable {
         FEE_CLAIMER = _claimer;
     }
 
+    function setPrimaryAdapters(address[] memory _adapters) public onlyOwner {
+        emit UpdatedPrimaryAdapters(_adapters);
+        PRIMARY_ADAPTERS = _adapters;
+    }
+
+    function addPrimaryTokens(address[] memory _primaryTokens) public onlyOwner {
+        for(uint256 i = 0; i < _primaryTokens.length; i++) {
+            addPrimaryToken(_primaryTokens[i]);
+        }
+    }
+
+    function removePrimaryTokens(address[] memory _primaryTokens) public onlyOwner {
+        for(uint256 i = 0; i < _primaryTokens.length; i++) {
+            removePrimaryToken(_primaryTokens[i]);
+        }
+    }
+
+    function addPrimaryToken(address _primaryToken) public onlyOwner {
+        emit AddedPrimaryToken(_primaryToken);
+        PRIMARY_TOKENS[_primaryToken] = true;
+    }
+
+    function removePrimaryToken(address _primaryToken) public onlyOwner {
+        require(PRIMARY_TOKENS[_primaryToken] == true, 'AxialRouter: Token is not a primary token');
+        emit RemovedPrimaryToken(_primaryToken);
+        delete PRIMARY_TOKENS[_primaryToken];
+    }
+
     //  -- GENERAL --
 
     function trustedTokensCount() external view returns (uint) {
@@ -151,6 +195,10 @@ contract AxialRouter is Ownable {
         require(_amount > 0, 'AxialRouter: Nothing to recover');
         payable(msg.sender).transfer(_amount);
         emit Recovered(address(0), _amount);
+    }
+
+    function isPrimaryToken(address _primaryToken) external view returns (bool){
+        return PRIMARY_TOKENS[_primaryToken];
     }
 
     // Fallback
