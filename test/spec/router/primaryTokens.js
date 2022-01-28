@@ -11,7 +11,7 @@ const testTokenList =  [
     "0x48E6013EcF4d40ce15c5223B62Fc2FE33296C2e4"
 ];
 
-describe.only('Axial Router - Primary Tokens', () => {
+describe('Axial Router - Primary Tokens', () => {
 
     before(async () => {
         [deployer] = await ethers.getSigners();
