@@ -577,7 +577,22 @@ contract AxialRouter is Ownable {
     ) internal view returns (Offer memory) {
         Offer memory bestOption = _cloneOffer(_queries);
         uint256 bestAmountOut;
-        // First check if there is a path directly from tokenIn to tokenOut
+
+        // If tokenIn & tokenOut are primary tokens then use primary adapters
+        if(isPrimaryToken(_tokenIn) && isPrimaryToken(_tokenOut)) {
+            Query memory queryPrimary = queryNoSplitPrimary(_amountIn, _tokenIn, _tokenOut);
+            if(queryPrimary.amountOut != 0) {
+                _addQuery(
+                    bestOption, 
+                    queryPrimary.amountOut, 
+                    queryPrimary.adapter, 
+                    queryPrimary.tokenOut
+                );
+                return bestOption;
+            }
+        }
+
+        // Check if there is a path directly from tokenIn to tokenOut
         Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _tokenOut);
         if (queryDirect.amountOut!=0) {
             _addQuery(bestOption, queryDirect.amountOut, queryDirect.adapter, queryDirect.tokenOut);
