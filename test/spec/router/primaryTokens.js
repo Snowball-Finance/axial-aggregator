@@ -31,10 +31,6 @@ describe('Axial Router - Primary Tokens', () => {
         await router.deployed();
     })
 
-    beforeEach(async () => {
-        
-    })
-
     it('Should add/remove address from primary tokens list', async () => {
         const isPrimaryTokenBefore = await router.isPrimaryToken(testTokenAddress)
         expect(isPrimaryTokenBefore).to.equal(false)
