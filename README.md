@@ -16,7 +16,8 @@ With all the options there is no clear way of knowing which exchange will offer 
 
 ## How it works
 
-Axial Aggregator solves these problems by finding and executing the most profitable trades for users.
+Axial Aggregator solves these problems by finding and executing the most profitable trades for users. The Axial Aggregator works by finding the best path between two tokens using Axial pools, if a path is not found non Axial pools will be used.
+
 * Multi-path trades (e.g. Pangolin > Gondola > Zero)
 * Gas-cost considerations
 * Easy to build on top of
