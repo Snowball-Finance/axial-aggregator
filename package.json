@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npx hardhat compile",
     "test": "npx hardhat test"
   },
   "author": "",
@@ -20,7 +21,7 @@
     "hardhat-abi-exporter": "^2.2.1",
     "hardhat-contract-sizer": "^2.0.3",
     "hardhat-deploy": "^0.7.10",
-    "hardhat-deploy-ethers": "*",
+    "hardhat-deploy-ethers": "^0.3.0-beta.13",
     "hardhat-gas-reporter": "^1.0.4"
   },
   "dependencies": {
