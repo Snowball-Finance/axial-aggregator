@@ -76,5 +76,5 @@ describe('Axial Router - Primary Tokens', () => {
             const isNotPrimaryTokenAfterBulkRemove = await router.isPrimaryToken(testToken)
             expect(isNotPrimaryTokenAfterBulkRemove).to.equal(false)
         }
-    })
+    }) 
 })
