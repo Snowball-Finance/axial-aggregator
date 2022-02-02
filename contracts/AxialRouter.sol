@@ -23,10 +23,6 @@ contract AxialRouter is Ownable {
     address public FEE_CLAIMER;
     address[] public TRUSTED_TOKENS;
     address[] public ADAPTERS;
-    address[] public PRIMARY_ADAPTERS;
-
-    /// @dev Tokens to be prioritised for swaps through primary adapters
-    mapping(address => bool) PRIMARY_TOKENS;
 
     event Recovered(
         address indexed _asset, 
@@ -49,18 +45,6 @@ contract AxialRouter is Ownable {
     event UpdatedFeeClaimer(
         address _oldFeeClaimer, 
         address _newFeeClaimer 
-    );
-
-    event UpdatedPrimaryAdapters(
-        address[] _newPrimaryAdapters
-    );
-     
-    event AddedPrimaryToken(
-        address _newPrimaryToken
-    );
-
-    event RemovedPrimaryToken(
-        address _oldPrimaryToken
     );
 
     event AxialSwap(
@@ -147,34 +131,6 @@ contract AxialRouter is Ownable {
         FEE_CLAIMER = _claimer;
     }
 
-    function setPrimaryAdapters(address[] memory _adapters) public onlyOwner {
-        emit UpdatedPrimaryAdapters(_adapters);
-        PRIMARY_ADAPTERS = _adapters;
-    }
-
-    function addPrimaryTokens(address[] memory _primaryTokens) public onlyOwner {
-        for(uint256 i = 0; i < _primaryTokens.length; i++) {
-            addPrimaryToken(_primaryTokens[i]);
-        }
-    }
-
-    function removePrimaryTokens(address[] memory _primaryTokens) public onlyOwner {
-        for(uint256 i = 0; i < _primaryTokens.length; i++) {
-            removePrimaryToken(_primaryTokens[i]);
-        }
-    }
-
-    function addPrimaryToken(address _primaryToken) public onlyOwner {
-        emit AddedPrimaryToken(_primaryToken);
-        PRIMARY_TOKENS[_primaryToken] = true;
-    }
-
-    function removePrimaryToken(address _primaryToken) public onlyOwner {
-        require(PRIMARY_TOKENS[_primaryToken] == true, 'AxialRouter: Token is not a primary token');
-        emit RemovedPrimaryToken(_primaryToken);
-        delete PRIMARY_TOKENS[_primaryToken];
-    }
-
     //  -- GENERAL --
 
     function trustedTokensCount() external view returns (uint) {
@@ -195,10 +151,6 @@ contract AxialRouter is Ownable {
         require(_amount > 0, 'AxialRouter: Nothing to recover');
         payable(msg.sender).transfer(_amount);
         emit Recovered(address(0), _amount);
-    }
-
-    function isPrimaryToken(address _primaryToken) public view returns (bool){
-        return PRIMARY_TOKENS[_primaryToken];
     }
 
     // Fallback
@@ -385,29 +337,6 @@ contract AxialRouter is Ownable {
     }
 
     /**
-     * Query primary adapters
-     */
-    function queryNoSplitPrimary(
-        uint256 _amountIn, 
-        address _tokenIn, 
-        address _tokenOut
-    ) public view returns (Query memory) {
-        Query memory bestQuery;
-        for (uint8 i; i<PRIMARY_ADAPTERS.length; i++) {
-            address _primaryAdapter = PRIMARY_ADAPTERS[i];
-            uint amountOut = IAdapter(_primaryAdapter).query(
-                _amountIn, 
-                _tokenIn, 
-                _tokenOut
-            );
-            if (i==0 || amountOut>bestQuery.amountOut) {
-                bestQuery = Query(_primaryAdapter, _tokenIn, _tokenOut, amountOut);
-            }
-        }
-        return bestQuery;
-    }
-
-    /**
      * Query all adapters
      */
     function queryNoSplit(
@@ -475,22 +404,6 @@ contract AxialRouter is Ownable {
     ) internal view returns (OfferWithGas memory) {
         OfferWithGas memory bestOption = _cloneOfferWithGas(_queries);
         uint256 bestAmountOut;
-
-        // If tokenIn & tokenOut are primary tokens then use primary adapters
-        if(isPrimaryToken(_tokenIn) && isPrimaryToken(_tokenOut)) {
-            Query memory queryPrimary = queryNoSplitPrimary(_amountIn, _tokenIn, _tokenOut);
-            if(queryPrimary.amountOut != 0) {
-                uint gasEstimate = IAdapter(queryPrimary.adapter).swapGasEstimate();
-                _addQueryWithGas(
-                    bestOption, 
-                    queryPrimary.amountOut, 
-                    queryPrimary.adapter, 
-                    queryPrimary.tokenOut, 
-                    gasEstimate
-                );
-                return bestOption;
-            }
-        }
 
         // Check if there is a path directly from tokenIn to tokenOut
         Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _tokenOut);
