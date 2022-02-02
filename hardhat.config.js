@@ -43,13 +43,26 @@ module.exports = {
     spec: ['test/**/*.spec.js']
   },
   solidity: {
-      version: "0.7.6", 
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 999
-        }  
+    compilers:[
+      {
+        version: "0.7.6", 
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 999
+          }  
+        }
+      },
+      {
+        version: "0.8.4", 
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 999
+          }  
+        }
       }
+    ],
   },
   namedAccounts: {
     deployer: {
