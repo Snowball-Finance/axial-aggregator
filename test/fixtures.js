@@ -510,11 +510,27 @@ const router = deployments.createFixture(async ({ }) => {
             'BytesManipulation': BytesManipulation.address
         } 
     })
+
+    // External router
     const AxialRouter = await AxialRouterFactory.connect(deployer).deploy(
         Object.values(adapters).map(a=>a.address), 
         trustedTokens, 
         deployer.address
     )
+
+    const axialAddresses = Object.values(axialAdapter).map(a=>a.address);
+
+    // Internal router
+    const AxialRouter = await AxialRouterFactory.connect(deployer).deploy(
+        Object.values(axialAdapter).map(a=>a.address), 
+        trustedTokens, 
+        deployer.address
+    )
+
+    const AxialAggregatorFactory = await ethers.getContractFactory('AxialAggregator');
+
+    const AxialAggregator = await AxialAggregatorFactory.connect(deployer).deploy()
+    
     // Set tags
     if (TRACER_ENABLED) {
         hre.tracer.nameTags['deployer'] = deployer
