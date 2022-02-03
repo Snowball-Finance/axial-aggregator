@@ -477,6 +477,7 @@ const router = deployments.createFixture(async ({ }) => {
     const _unilike = await _unilikeAdapters()
     const _curvelike = await _curvelikeAdapters()
     const _bridgeMigration = await _bridgeMigrationAdapters()
+    const _axialAdapters = await _axialAdapter()
 
     let adapters
     if (ADAPTERS.length>0) {
@@ -517,19 +518,26 @@ const router = deployments.createFixture(async ({ }) => {
         trustedTokens, 
         deployer.address
     )
+    
 
-    const axialAddresses = Object.values(axialAdapter).map(a=>a.address);
+    const axialAdapters = [
+        _axialAdapters.AxialAM3DUSDCAdapter.address,
+        _axialAdapters.AxialAM3DAdapter.address,
+        _axialAdapters.AxialAC4DAdapter.address,
+        _axialAdapters.AxialAA3DAdapter.address,
+        _axialAdapters.AxialAS4DAdapter.address,
+    ]
 
     // Internal router
-    const AxialRouter = await AxialRouterFactory.connect(deployer).deploy(
-        Object.values(axialAdapter).map(a=>a.address), 
+    const InternalAxialRouter = await AxialRouterFactory.connect(deployer).deploy(
+        axialAdapters, 
         trustedTokens, 
         deployer.address
     )
 
     const AxialAggregatorFactory = await ethers.getContractFactory('AxialAggregator');
 
-    const AxialAggregator = await AxialAggregatorFactory.connect(deployer).deploy()
+    const AxialAggregator = await AxialAggregatorFactory.connect(deployer).deploy(InternalAxialRouter.address, AxialRouter.address);
     
     // Set tags
     if (TRACER_ENABLED) {
@@ -540,7 +548,9 @@ const router = deployments.createFixture(async ({ }) => {
     return {
         AxialRouterFactory, 
         AxialRouter, 
-        adapters
+        adapters,
+        AxialAggregator,
+        InternalAxialRouter
     }
 })
 
