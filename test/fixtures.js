@@ -528,10 +528,21 @@ const router = deployments.createFixture(async ({ }) => {
         _axialAdapters.AxialAS4DAdapter.address,
     ]
 
+    const trustedAxialTokens = [
+        assets.DAIe,
+        assets.MIM,
+        assets.FRAXc,
+        assets.TSD,
+        assets.USDCe,
+        assets.TUSD,
+        assets.USDT,
+        assets.AVAI    
+    ]
+
     // Internal router
     const InternalAxialRouter = await AxialRouterFactory.connect(deployer).deploy(
         axialAdapters, 
-        trustedTokens, 
+        trustedAxialTokens, 
         deployer.address
     )
 

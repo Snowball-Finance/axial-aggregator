@@ -17,14 +17,28 @@ interface IRouter {
         address[] adapters;
     }
 
+    struct FormattedOffer {
+        uint[] amounts;
+        address[] adapters;
+        address[] path;
+    }
+
     function findBestPathWithGas(
         uint256 _amountIn, 
         address _tokenIn, 
         address _tokenOut, 
         uint _maxSteps,
-        uint _gasPrice
+        uint _gasPrice,
+        uint _tokenOutPrice
     ) external view returns (FormattedOfferWithGas memory);
 
+    function findBestPath(
+        uint256 _amountIn, 
+        address _tokenIn, 
+        address _tokenOut, 
+        uint _maxSteps
+    ) external view returns (FormattedOffer memory);
+  
     function swapNoSplit(
         Trade calldata _trade,
         address _to,

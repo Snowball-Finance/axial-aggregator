@@ -24,11 +24,11 @@ describe('Axial Aggregator - Find best path', () => {
         trader = fix.genNewAccount()
     })
 
-    it.only('Should run', async () => { 
+    it.only('Should return path using internal router connecting AC4D & AM3D(TSD -> DAIe -> USDCe)', async () => { 
  
-        let amountIn = ethers.utils.parseUnits('1')
-        let tokenIn = assets.PNG
-        let tokenOut = assets.ETH
+        let amountIn = ethers.utils.parseUnits('10')
+        let tokenIn = assets.TSD
+        let tokenOut = assets.USDCe
         let gasPrice = parseUnits('225', 'gwei')
         let steps = 3
         let result = await AxialAggregator.findBestPath(
@@ -40,7 +40,16 @@ describe('Axial Aggregator - Find best path', () => {
             { gasLimit: 1e9 }
         )
 
-        console.log(result);
+        // Should use internal router
+        expect(result.useInternalRouter).to.be.true;
+
+        // Should use 2 adapters(AC4D -> AM3D)
+        expect(result.bestPath.adapters.length).to.be.equal(2); 
+
+        // TODO: Check adapter[0] == AC4D
+        // TODO: Check adapter[1] == AM3D
+        // TODO: Check tokenIn == TSD
+        // TODO: Check `tokenOut` == DAIe
     })
 
 

@@ -155,6 +155,10 @@ contract AxialRouter is Ownable {
         emit Recovered(address(0), _amount);
     }
 
+    function getAdapters() public view returns (address[] memory) {
+        return ADAPTERS;
+    }
+
     // Fallback
     receive() external payable {}
 
@@ -370,16 +374,26 @@ contract AxialRouter is Ownable {
         address _tokenIn, 
         address _tokenOut, 
         uint _maxSteps,
-        uint _gasPrice
+        uint _gasPrice,
+        uint _tokenOutPrice
     ) external view returns (FormattedOfferWithGas memory) {
         require(_maxSteps>0 && _maxSteps<5, 'AxialRouter: Invalid max-steps');
         OfferWithGas memory queries;
         queries.amounts = BytesManipulation.toBytes(_amountIn);
         queries.path = BytesManipulation.toBytes(_tokenIn);
-        // Find the market price between AVAX and token-out and express gas price in token-out currency
-        FormattedOffer memory gasQuery = findBestPath(1e18, WAVAX, _tokenOut, 2);  // Avoid low-liquidity price appreciation
-        // Leave result nWei to preserve digits for assets with low decimal places
-        uint tknOutPriceNwei = gasQuery.amounts[gasQuery.amounts.length-1].mul(_gasPrice/1e9);
+
+        uint tknOutPriceNwei;
+
+        if(_tokenOutPrice == 0) {
+            // Find the market price between AVAX and token-out and express gas price in token-out currency
+            FormattedOffer memory gasQuery = findBestPath(1e18, WAVAX, _tokenOut, 2);  // Avoid low-liquidity price appreciation
+            // Leave result nWei to preserve digits for assets with low decimal places
+            tknOutPriceNwei = gasQuery.amounts[gasQuery.amounts.length-1].mul(_gasPrice/1e9);
+        }
+        else{
+            tknOutPriceNwei = _tokenOutPrice;
+        }
+
         queries = _findBestPathWithGas(
             _amountIn, 
             _tokenIn, 
@@ -446,6 +460,12 @@ contract AxialRouter is Ownable {
                 );
                 address tokenOut = BytesManipulation.bytesToAddress(newOffer.path.length, newOffer.path);
                 uint256 amountOut = BytesManipulation.bytesToUint256(newOffer.amounts.length, newOffer.amounts);
+
+                // TODO: Check if there is no other option
+                if (_tokenOut == tokenOut && bestOption.gasEstimate == 0 && newOffer.gasEstimate > 0) {
+                    return newOffer;
+                }
+
                 // Check that the last token in the path is the tokenOut and update the new best option if neccesary
                 if (_tokenOut == tokenOut && amountOut > bestAmountOut) {
                     if (newOffer.gasEstimate > bestOption.gasEstimate) {
