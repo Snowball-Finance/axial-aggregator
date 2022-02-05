@@ -561,7 +561,8 @@ const router = deployments.createFixture(async ({ }) => {
         AxialRouter, 
         adapters,
         AxialAggregator,
-        InternalAxialRouter
+        InternalAxialRouter,
+        _axialAdapters
     }
 })
 
