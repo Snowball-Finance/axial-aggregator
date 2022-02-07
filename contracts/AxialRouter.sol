@@ -11,8 +11,6 @@ import "./lib/SafeMath.sol";
 import "./lib/SafeERC20.sol";
 import "./lib/Ownable.sol";
 
-import "hardhat/console.sol";
-
 contract AxialRouter is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -460,11 +458,6 @@ contract AxialRouter is Ownable {
                 );
                 address tokenOut = BytesManipulation.bytesToAddress(newOffer.path.length, newOffer.path);
                 uint256 amountOut = BytesManipulation.bytesToUint256(newOffer.amounts.length, newOffer.amounts);
-
-                // TODO: Check if there is no other option
-                if (_tokenOut == tokenOut && bestOption.gasEstimate == 0 && newOffer.gasEstimate > 0) {
-                    return newOffer;
-                }
 
                 // Check that the last token in the path is the tokenOut and update the new best option if neccesary
                 if (_tokenOut == tokenOut && amountOut > bestAmountOut) {
