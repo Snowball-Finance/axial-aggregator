@@ -5,7 +5,7 @@ const { parseUnits } = ethers.utils
 
 const fixtures = require('../../fixtures')
 
-describe.only('Axial Aggregator - Find best path', () => {
+describe('Axial Aggregator - Find best path', () => {
 
     before(async () => {
         fix = await fixtures.general()
