@@ -1,8 +1,11 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
+
+const { parseUnits } = ethers.utils
+
 const fixtures = require('../../fixtures')
 
-describe('Axial Aggregator - Find best path', () => {
+describe.only('Axial Aggregator - Find best path', () => {
 
     before(async () => {
         fix = await fixtures.general()
@@ -11,23 +14,20 @@ describe('Axial Aggregator - Find best path', () => {
         AxialAggregator = fixRouter.AxialAggregator
     })
 
-    beforeEach(async () => {
-        // Start each test with a fresh account
-        trader = fix.genNewAccount()
-    })
-
     it('Should return path using internal router to swap TSD to USDCe', async () => { 
         let amountIn = ethers.utils.parseUnits('10');
         let tokenIn = assets.TSD;
         let tokenOut = assets.USDCe;
-        let steps = 3
+        let steps = 4
+        let gasPrice = parseUnits('225', 'gwei');
 
         let result = await AxialAggregator.findBestPath([
             amountIn, 
             tokenIn, 
             tokenOut, 
-            steps
-        ]);
+            steps,
+            gasPrice
+        ],{ gasLimit: 1e9 });
 
         // Should use internal router
         expect(result.useInternalRouter).to.be.true;
@@ -45,14 +45,16 @@ describe('Axial Aggregator - Find best path', () => {
         let amountIn = ethers.utils.parseUnits('10');
         let tokenIn = assets.TSD;
         let tokenOut = assets.USDC;
-        let steps = 3;
+        let steps = 4
+        let gasPrice = parseUnits('225', 'gwei');
 
         let result = await AxialAggregator.findBestPath([
             amountIn, 
             tokenIn, 
             tokenOut, 
-            steps
-        ]);
+            steps,
+            gasPrice
+        ],{ gasLimit: 1e9 });
 
         // Should use internal router
         expect(result.useInternalRouter).to.be.true;
@@ -70,14 +72,16 @@ describe('Axial Aggregator - Find best path', () => {
         let amountIn = ethers.utils.parseUnits('10');
         let tokenIn = assets.AVAI;
         let tokenOut = assets.FRAXc;
-        let steps = 3;
+        let steps = 4
+        let gasPrice = parseUnits('225', 'gwei');
 
         let result = await AxialAggregator.findBestPath([
             amountIn, 
             tokenIn, 
             tokenOut, 
-            steps
-        ]);
+            steps,
+            gasPrice
+        ],{ gasLimit: 1e9 });
 
         // Should use internal router
         expect(result.useInternalRouter).to.be.true;
@@ -95,14 +99,16 @@ describe('Axial Aggregator - Find best path', () => {
         let amountIn = ethers.utils.parseUnits('10');
         let tokenIn = assets.USDC;
         let tokenOut = assets.USDTe;
-        let steps = 3;
+        let steps = 4
+        let gasPrice = parseUnits('225', 'gwei');
 
         let result = await AxialAggregator.findBestPath([
             amountIn, 
             tokenIn, 
             tokenOut, 
-            steps
-        ]);
+            steps,
+            gasPrice
+        ],{ gasLimit: 1e9 });
 
         // Should use internal router
         expect(result.useInternalRouter).to.be.true;
@@ -119,14 +125,16 @@ describe('Axial Aggregator - Find best path', () => {
         let amountIn = ethers.utils.parseUnits('10');
         let tokenIn = assets.SPELL;
         let tokenOut = assets.YAK;
-        let steps = 3;
+        let steps = 4
+        let gasPrice = parseUnits('225', 'gwei');
 
         let result = await AxialAggregator.findBestPath([
             amountIn, 
             tokenIn, 
             tokenOut, 
-            steps
-        ]);
+            steps,
+            gasPrice
+        ],{ gasLimit: 1e9 });
 
         // Should use external router
         expect(result.useInternalRouter).to.be.false;
@@ -138,7 +146,4 @@ describe('Axial Aggregator - Find best path', () => {
         expect(result.bestPath.path[0]).to.be.equal(tokenIn);
         expect(result.bestPath.path[result.bestPath.path.length-1]).to.be.equal(tokenOut);
     })
-
-
-
 })

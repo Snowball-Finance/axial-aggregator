@@ -4,20 +4,25 @@ pragma experimental ABIEncoderV2;
 
 import "./lib/Ownable.sol";
 import "./interface/IRouter.sol";
+import "./lib/SafeMath.sol";
 
 /// @notice Aggregator contract to help swapping across known pools but favoring Axial pools when there is a path.
 contract AxialAggregator is Ownable {
+    using SafeMath for uint;
 
     /// @dev Router that swaps across Axial pools;
     address public InternalRouter;
     /// @dev Router that swaps across all non-Axial pools; 
     address public ExternalRouter;
 
+    address public constant WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+
     struct FindBestPathParams {
         uint256 amountIn;
         address tokenIn;
         address tokenOut;
         uint256 maxSteps;
+        uint gasPrice;
     }
 
     event UpdatedInternalRouter(
@@ -58,30 +63,34 @@ contract AxialAggregator is Ownable {
 
     /// @notice Finds the best path between tokenIn & tokenOut, checking Axial owned pools first.
     /// @param _params This includes the input token, output token, max number of steps to use and amount in.
-    function findBestPath(FindBestPathParams calldata _params) external view returns (IRouter.FormattedOffer memory bestPath, bool useInternalRouter) {
-        IRouter.FormattedOffer memory offer;
+    function findBestPath(FindBestPathParams calldata _params) external view returns (IRouter.FormattedOfferWithGas memory bestPath, bool useInternalRouter) {
+        IRouter.FormattedOfferWithGas memory offer;
         bool UseInternalRouter;
 
-        IRouter internalRouter = IRouter(InternalRouter);
-        IRouter externalRouter = IRouter(ExternalRouter);
+        IRouter.FormattedOffer memory gasQuery = IRouter(ExternalRouter).findBestPath(1e18, WAVAX, _params.tokenOut, 2);
+        uint tknOutPriceNwei = gasQuery.amounts[gasQuery.amounts.length-1].mul(_params.gasPrice/1e9);
 
         // Query internal router for best path
-        offer = internalRouter.findBestPath(
+        offer = IRouter(InternalRouter).findBestPathWithGas(
             _params.amountIn,
             _params.tokenIn,
             _params.tokenOut,
-            _params.maxSteps
+            _params.maxSteps,
+            _params.gasPrice,
+            tknOutPriceNwei
         );
 
         // Check if internal router returned an offer
         if (offer.adapters.length > 0) {
             UseInternalRouter = true;
         } else {
-            offer = externalRouter.findBestPath(
+            offer = IRouter(ExternalRouter).findBestPathWithGas(
                 _params.amountIn,
                 _params.tokenIn,
                 _params.tokenOut,
-                _params.maxSteps
+                _params.maxSteps,
+                _params.gasPrice,
+                tknOutPriceNwei
             );
         }
 

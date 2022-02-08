@@ -1,5 +1,6 @@
 const { ethers } = require("hardhat")
 const { expect } = require("chai")
+const { parseUnits } = ethers.utils
 
 const fixtures = require('../../fixtures')
 const helpers = require('../../helpers') 
@@ -7,7 +8,7 @@ const addresses = require('../../addresses.json')
 
 const { assets } = addresses
 
-describe.only('Axial Aggregator - Swap', () => {
+describe('Axial Aggregator - Swap', () => {
 
     let fix;
 
@@ -15,10 +16,11 @@ describe.only('Axial Aggregator - Swap', () => {
         {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAX' },
         {tokenIn: assets.TSD, tokenInSymbol: 'TSD' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
         {tokenIn: assets.FRAXc, tokenInSymbol: 'FRAX' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
-        {tokenIn: assets.USDCe, tokenInSymbol: 'USDCe' , tokenOut: assets.TSD, tokenOutSymbol: 'TSD' },
         {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.USDC, tokenOutSymbol: 'USDC' },
+        {tokenIn: assets.USDCe, tokenInSymbol: 'USDCe' , tokenOut: assets.TSD, tokenOutSymbol: 'TSD' },
         {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' },
-        {tokenIn: assets.AVAI, tokenInSymbol: 'AVAI' , tokenOut: assets.TUSD, tokenOutSymbol: 'TUSD' },
+        {tokenIn: assets.USDC, tokenInSymbol: 'USDC' , tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' },
+        {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' }
     ]
 
     before(async () => {
@@ -41,6 +43,7 @@ describe.only('Axial Aggregator - Swap', () => {
             let tokenIn = testCase.tokenIn;
             let tokenOut = testCase.tokenOut;
             let steps = 4
+            let gasPrice = parseUnits('225', 'gwei');
 
             // Top up trader
             let [ topUpAmountIn ] = await fix.PangolinRouter.getAmountsIn(amountIn, [assets.WAVAX, tokenIn])
@@ -57,8 +60,9 @@ describe.only('Axial Aggregator - Swap', () => {
                 amountIn, 
                 tokenIn, 
                 tokenOut, 
-                steps
-            ]);
+                steps,
+                gasPrice
+            ],{ gasLimit: 1e9 });
 
             // Should use internal router
             expect(query.useInternalRouter).to.be.true; 
