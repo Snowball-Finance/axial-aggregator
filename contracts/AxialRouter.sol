@@ -19,7 +19,6 @@ contract AxialRouter is Ownable {
     address public constant AVAX = address(0);
     string public constant NAME = 'AxialRouter';
     uint public constant FEE_DENOMINATOR = 1e4;
-    uint public MIN_FEE = 0;
     address public FEE_CLAIMER;
     address[] public TRUSTED_TOKENS;
     address[] public ADAPTERS;
@@ -121,11 +120,6 @@ contract AxialRouter is Ownable {
         ADAPTERS = _adapters;
     }
 
-    function setMinFee(uint _fee) external onlyOwner {
-        emit UpdatedMinFee(MIN_FEE, _fee);
-        MIN_FEE = _fee;
-    }
-
     function setFeeClaimer(address _claimer) public onlyOwner {
         emit UpdatedFeeClaimer(FEE_CLAIMER, _claimer);
         FEE_CLAIMER = _claimer;
@@ -163,8 +157,8 @@ contract AxialRouter is Ownable {
 
     // -- HELPERS -- 
 
-    function _applyFee(uint _amountIn, uint _fee) internal view returns (uint) {
-        require(_fee>=MIN_FEE, 'AxialRouter: Insufficient fee');
+    function _applyFee(uint _amountIn, uint _fee) internal pure returns (uint) {
+        require(_fee > 0, 'AxialRouter: Insufficient fee');
         return _amountIn.mul(FEE_DENOMINATOR.sub(_fee))/FEE_DENOMINATOR;
     }
 
@@ -555,7 +549,7 @@ contract AxialRouter is Ownable {
         uint _fee
     ) internal returns (uint) {
         uint[] memory amounts = new uint[](_trade.path.length);
-        if (_fee > 0 || MIN_FEE > 0) {
+        if (_fee > 0) {
             // Transfer fees to the claimer account and decrease initial amount
             amounts[0] = _applyFee(_trade.amountIn, _fee);
             IERC20(_trade.path[0]).safeTransferFrom(

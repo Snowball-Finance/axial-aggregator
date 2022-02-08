@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./lib/Ownable.sol";
 import "./interface/IRouter.sol";
 
-/// @notice Aggregator contract that helps swapping across known pools but favoring Axial pools when there is a path.
+/// @notice Aggregator contract to help swapping across known pools but favoring Axial pools when there is a path.
 contract AxialAggregator is Ownable {
 
     /// @dev Router that swaps across Axial pools;
@@ -20,12 +20,10 @@ contract AxialAggregator is Ownable {
         uint256 maxSteps;
     }
 
-
     event UpdatedInternalRouter(
         address _oldInternalRouter, 
         address _newInternalRouter
     );
-
 
     event UpdatedExternalRouter(
         address _oldExternalRouter, 
@@ -35,22 +33,24 @@ contract AxialAggregator is Ownable {
     constructor(address _internalRouter, address _externalRouter) {
         require(
             _internalRouter != address(0),
-            "InternalRouter address must be provided"
+            "Aggregator: _internalRouter not set"
         );
         require(
             _externalRouter != address(0),
-            "EnternalRouter address must be provided"
+            "Aggregator: _externalRouter not set"
         );
 
         InternalRouter = _internalRouter;
         ExternalRouter = _externalRouter;
     }
 
+    /// @notice Set router to be used for swapping across Axial pools.
     function setInternalRouter(address _internalRouter) public onlyOwner {
         emit UpdatedInternalRouter(InternalRouter, _internalRouter);
         InternalRouter = _internalRouter;
     }
 
+    /// @notice Set router to be used for swapping across non-Axial pools.
     function setExternalRouter(address _externalRouter) public onlyOwner {
         emit UpdatedExternalRouter(ExternalRouter, _externalRouter);
         ExternalRouter = _externalRouter;
@@ -93,24 +93,30 @@ contract AxialAggregator is Ownable {
     /// @param _to The output amount will be sent to this address.
     /// @param _fee The fee to be paid by the sender.
     /// @param _useInternalRouter Specifies whether to use the internal router or external router.
-    /// @dev The router being used for the swap must be approved to spend users input token.
+    /// @dev The aggregator must be approved to spend users input token.
     function swap(
         IRouter.Trade calldata _trade,
         address _to,
         uint256 _fee,
         bool _useInternalRouter
     ) external {
-        require(_to != address(0), "Aggregator: _to is the zero address");
-
-        IRouter router;
+        require(_to != address(0), "Aggregator: _to not set");
 
         if(_useInternalRouter) {
-            router = IRouter(InternalRouter);
-            router.swapNoSplit(_trade, _to, _fee);
+            (bool success,) = InternalRouter.delegatecall(
+                abi.encodeWithSelector(IRouter(InternalRouter).swapNoSplit.selector, 
+                _trade, _to, _fee)
+            );
+
+            require(success, "Aggregator: InternalRouter.swapNoSplit failed");
         }
         else{
-            router = IRouter(ExternalRouter);
-            router.swapNoSplit(_trade, _to, _fee);
+            (bool success,) = ExternalRouter.delegatecall(
+                abi.encodeWithSelector(IRouter(InternalRouter).swapNoSplit.selector, 
+                _trade, _to, _fee)
+            );
+
+            require(success, "Aggregator: ExternalRouter.swapNoSplit failed");
         }
     }
 }
