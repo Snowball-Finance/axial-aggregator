@@ -534,8 +534,9 @@ const router = deployments.createFixture(async ({ }) => {
         assets.FRAXc,
         assets.TSD,
         assets.USDCe,
+        assets.USDC,
         assets.TUSD,
-        assets.USDT,
+        assets.USDTe,
         assets.AVAI    
     ]
 
