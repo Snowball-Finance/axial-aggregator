@@ -82,8 +82,8 @@ describe('Axial Aggregator - Swap', () => {
                 gasPrice
             ],{ gasLimit: 1e9 });
 
-            // Should have adapters
-            expect(query.bestPath.adapters.length).to.gt(0);
+            // Ensure route exists 
+            expect(query.bestPath.path.length).to.gt(0);
 
             // Should use internal router
             expect(query.useInternalRouter).to.be.true; 
@@ -91,6 +91,9 @@ describe('Axial Aggregator - Swap', () => {
             // Path should be correct
             expect(query.bestPath.path[0]).to.be.equal(tokenIn);
             expect(query.bestPath.path[query.bestPath.path.length-1]).to.be.equal(tokenOut);
+
+            // Should have adapters
+            expect(query.bestPath.adapters.length).to.gt(0);
 
             // Approve Aggregator
             await helpers.approveERC20(trader, tokenIn, AxialAggregator.address, ethers.constants.MaxUint256);
