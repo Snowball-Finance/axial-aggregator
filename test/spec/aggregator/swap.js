@@ -14,13 +14,31 @@ describe('Axial Aggregator - Swap', () => {
 
     const testCases = [
         {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAX' },
+        {tokenOut: assets.DAIe, tokenOutSymbol: 'DAIe' , tokenIn: assets.FRAXc, tokenInSymbol: 'FRAX' },
+
         {tokenIn: assets.TSD, tokenInSymbol: 'TSD' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
+        {tokenOut: assets.TSD, tokenOutSymbol: 'TSD' , tokenIn: assets.AVAI, tokenInSymbol: 'AVAI' },
+
         {tokenIn: assets.FRAXc, tokenInSymbol: 'FRAX' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
+        {tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAX' , tokenIn: assets.AVAI, tokenInSymbol: 'AVAI' },
+
         {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.USDC, tokenOutSymbol: 'USDC' },
+        {tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' , tokenIn: assets.USDC, tokenInSymbol: 'USDC' },
+
         {tokenIn: assets.USDCe, tokenInSymbol: 'USDCe' , tokenOut: assets.TSD, tokenOutSymbol: 'TSD' },
+        {tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' , tokenIn: assets.TSD, tokenInSymbol: 'TSD' },
+
         {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' },
+        {tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' , tokenIn: assets.MIM, tokenInSymbol: 'MIM' },
+
+        {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' },
+        {tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' , tokenIn: assets.MIM, tokenInSymbol: 'MIM' },
+
         {tokenIn: assets.USDC, tokenInSymbol: 'USDC' , tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' },
-        {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' }
+        {tokenOut: assets.USDC, tokenOutSymbol: 'USDC' , tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' },
+
+        {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' },
+        {tokenOut: assets.TUSD, tokenOutSymbol: 'TUSD' , tokenIn: assets.USDCe, tokenInSymbol: 'USDCe' },
     ]
 
     before(async () => {
@@ -64,15 +82,15 @@ describe('Axial Aggregator - Swap', () => {
                 gasPrice
             ],{ gasLimit: 1e9 });
 
+            // Should have adapters
+            expect(query.bestPath.adapters.length).to.gt(0);
+
             // Should use internal router
             expect(query.useInternalRouter).to.be.true; 
             
             // Path should be correct
             expect(query.bestPath.path[0]).to.be.equal(tokenIn);
             expect(query.bestPath.path[query.bestPath.path.length-1]).to.be.equal(tokenOut);
-
-            // Should have adapters
-            expect(query.bestPath.adapters.length).to.gt(0);
 
             // Approve Aggregator
             await helpers.approveERC20(trader, tokenIn, AxialAggregator.address, ethers.constants.MaxUint256);
