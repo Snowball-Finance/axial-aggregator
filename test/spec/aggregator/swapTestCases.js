@@ -13,10 +13,10 @@ const testCases = [
     {tokenIn: assets.TSD, tokenInSymbol: 'TSD' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
 
     // DAIe in
+    {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' },
     {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.TSD, tokenOutSymbol: 'TSD' },
     {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' },
     {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAXc' }, 
-    {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' },
     {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.USDC, tokenOutSymbol: 'USDC' },
     {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.TUSD, tokenOutSymbol: 'TUSD' },
     {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' },
