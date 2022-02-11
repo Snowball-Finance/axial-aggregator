@@ -7,39 +7,11 @@ const helpers = require('../../helpers')
 const addresses = require('../../addresses.json')
 
 const { assets } = addresses
+const { testCases } = require("./swapTestCases")
 
 describe('Axial Aggregator - Swap', () => {
 
     let fix;
-
-    const testCases = [
-        {tokenIn: assets.DAIe, tokenInSymbol: 'DAIe' , tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAX' },
-        {tokenOut: assets.DAIe, tokenOutSymbol: 'DAIe' , tokenIn: assets.FRAXc, tokenInSymbol: 'FRAX' },
-
-        {tokenIn: assets.TSD, tokenInSymbol: 'TSD' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
-        {tokenOut: assets.TSD, tokenOutSymbol: 'TSD' , tokenIn: assets.AVAI, tokenInSymbol: 'AVAI' },
-
-        {tokenIn: assets.FRAXc, tokenInSymbol: 'FRAX' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },
-        {tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAX' , tokenIn: assets.AVAI, tokenInSymbol: 'AVAI' },
-
-        {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.USDC, tokenOutSymbol: 'USDC' },
-        {tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' , tokenIn: assets.USDC, tokenInSymbol: 'USDC' },
-
-        {tokenIn: assets.USDCe, tokenInSymbol: 'USDCe' , tokenOut: assets.TSD, tokenOutSymbol: 'TSD' },
-        {tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' , tokenIn: assets.TSD, tokenInSymbol: 'TSD' },
-
-        {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' },
-        {tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' , tokenIn: assets.MIM, tokenInSymbol: 'MIM' },
-
-        {tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' },
-        {tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' , tokenIn: assets.MIM, tokenInSymbol: 'MIM' },
-
-        {tokenIn: assets.USDC, tokenInSymbol: 'USDC' , tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' },
-        {tokenOut: assets.USDC, tokenOutSymbol: 'USDC' , tokenIn: assets.USDTe, tokenInSymbol: 'USDTe' },
-
-        {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' },
-        {tokenOut: assets.TUSD, tokenOutSymbol: 'TUSD' , tokenIn: assets.USDCe, tokenInSymbol: 'USDCe' },
-    ]
 
     before(async () => {
         fix = await fixtures.general();
