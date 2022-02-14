@@ -477,6 +477,7 @@ const router = deployments.createFixture(async ({ }) => {
     const _unilike = await _unilikeAdapters()
     const _curvelike = await _curvelikeAdapters()
     const _bridgeMigration = await _bridgeMigrationAdapters()
+    const _axialAdapters = await _axialAdapter()
 
     let adapters
     if (ADAPTERS.length>0) {
@@ -510,11 +511,46 @@ const router = deployments.createFixture(async ({ }) => {
             'BytesManipulation': BytesManipulation.address
         } 
     })
+
+    // External router
     const AxialRouter = await AxialRouterFactory.connect(deployer).deploy(
         Object.values(adapters).map(a=>a.address), 
         trustedTokens, 
         deployer.address
     )
+    
+
+    const axialAdapters = [
+        _axialAdapters.AxialAM3DUSDCAdapter.address,
+        _axialAdapters.AxialAM3DAdapter.address,
+        _axialAdapters.AxialAC4DAdapter.address,
+        _axialAdapters.AxialAA3DAdapter.address,
+        _axialAdapters.AxialAS4DAdapter.address,
+    ]
+
+    const trustedAxialTokens = [
+        assets.DAIe,
+        assets.MIM,
+        assets.FRAXc,
+        assets.TSD,
+        assets.USDCe,
+        assets.USDC,
+        assets.TUSD,
+        assets.USDTe,
+        assets.AVAI    
+    ]
+
+    // Internal router
+    const InternalAxialRouter = await AxialRouterFactory.connect(deployer).deploy(
+        axialAdapters, 
+        trustedAxialTokens, 
+        deployer.address
+    )
+
+    const AxialAggregatorFactory = await ethers.getContractFactory('AxialAggregator');
+
+    const AxialAggregator = await AxialAggregatorFactory.connect(deployer).deploy(InternalAxialRouter.address, AxialRouter.address);
+    
     // Set tags
     if (TRACER_ENABLED) {
         hre.tracer.nameTags['deployer'] = deployer
@@ -524,7 +560,10 @@ const router = deployments.createFixture(async ({ }) => {
     return {
         AxialRouterFactory, 
         AxialRouter, 
-        adapters
+        adapters,
+        AxialAggregator,
+        InternalAxialRouter,
+        _axialAdapters
     }
 })
 

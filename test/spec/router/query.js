@@ -194,6 +194,4 @@ describe('Axial Router - query', () => {
         // console.log(result)
         // console.log('Gas estimate:', ethers.utils.formatUnits(result.gasEstimate, 9))
     })
-
-
 })

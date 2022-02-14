@@ -19,14 +19,9 @@ contract AxialRouter is Ownable {
     address public constant AVAX = address(0);
     string public constant NAME = 'AxialRouter';
     uint public constant FEE_DENOMINATOR = 1e4;
-    uint public MIN_FEE = 0;
     address public FEE_CLAIMER;
     address[] public TRUSTED_TOKENS;
     address[] public ADAPTERS;
-    address[] public PRIMARY_ADAPTERS;
-
-    /// @dev Tokens to be prioritised for swaps through primary adapters
-    mapping(address => bool) PRIMARY_TOKENS;
 
     event Recovered(
         address indexed _asset, 
@@ -49,18 +44,6 @@ contract AxialRouter is Ownable {
     event UpdatedFeeClaimer(
         address _oldFeeClaimer, 
         address _newFeeClaimer 
-    );
-
-    event UpdatedPrimaryAdapters(
-        address[] _newPrimaryAdapters
-    );
-     
-    event AddedPrimaryToken(
-        address _newPrimaryToken
-    );
-
-    event RemovedPrimaryToken(
-        address _oldPrimaryToken
     );
 
     event AxialSwap(
@@ -137,42 +120,9 @@ contract AxialRouter is Ownable {
         ADAPTERS = _adapters;
     }
 
-    function setMinFee(uint _fee) external onlyOwner {
-        emit UpdatedMinFee(MIN_FEE, _fee);
-        MIN_FEE = _fee;
-    }
-
     function setFeeClaimer(address _claimer) public onlyOwner {
         emit UpdatedFeeClaimer(FEE_CLAIMER, _claimer);
         FEE_CLAIMER = _claimer;
-    }
-
-    function setPrimaryAdapters(address[] memory _adapters) public onlyOwner {
-        emit UpdatedPrimaryAdapters(_adapters);
-        PRIMARY_ADAPTERS = _adapters;
-    }
-
-    function addPrimaryTokens(address[] memory _primaryTokens) public onlyOwner {
-        for(uint256 i = 0; i < _primaryTokens.length; i++) {
-            addPrimaryToken(_primaryTokens[i]);
-        }
-    }
-
-    function removePrimaryTokens(address[] memory _primaryTokens) public onlyOwner {
-        for(uint256 i = 0; i < _primaryTokens.length; i++) {
-            removePrimaryToken(_primaryTokens[i]);
-        }
-    }
-
-    function addPrimaryToken(address _primaryToken) public onlyOwner {
-        emit AddedPrimaryToken(_primaryToken);
-        PRIMARY_TOKENS[_primaryToken] = true;
-    }
-
-    function removePrimaryToken(address _primaryToken) public onlyOwner {
-        require(PRIMARY_TOKENS[_primaryToken] == true, 'AxialRouter: Token is not a primary token');
-        emit RemovedPrimaryToken(_primaryToken);
-        delete PRIMARY_TOKENS[_primaryToken];
     }
 
     //  -- GENERAL --
@@ -197,8 +147,8 @@ contract AxialRouter is Ownable {
         emit Recovered(address(0), _amount);
     }
 
-    function isPrimaryToken(address _primaryToken) public view returns (bool){
-        return PRIMARY_TOKENS[_primaryToken];
+    function getAdapters() public view returns (address[] memory) {
+        return ADAPTERS;
     }
 
     // Fallback
@@ -207,8 +157,8 @@ contract AxialRouter is Ownable {
 
     // -- HELPERS -- 
 
-    function _applyFee(uint _amountIn, uint _fee) internal view returns (uint) {
-        require(_fee>=MIN_FEE, 'AxialRouter: Insufficient fee');
+    function _applyFee(uint _amountIn, uint _fee) internal pure returns (uint) {
+        require(_fee > 0, 'AxialRouter: Insufficient fee');
         return _amountIn.mul(FEE_DENOMINATOR.sub(_fee))/FEE_DENOMINATOR;
     }
 
@@ -385,29 +335,6 @@ contract AxialRouter is Ownable {
     }
 
     /**
-     * Query primary adapters
-     */
-    function queryNoSplitPrimary(
-        uint256 _amountIn, 
-        address _tokenIn, 
-        address _tokenOut
-    ) public view returns (Query memory) {
-        Query memory bestQuery;
-        for (uint8 i; i<PRIMARY_ADAPTERS.length; i++) {
-            address _primaryAdapter = PRIMARY_ADAPTERS[i];
-            uint amountOut = IAdapter(_primaryAdapter).query(
-                _amountIn, 
-                _tokenIn, 
-                _tokenOut
-            );
-            if (i==0 || amountOut>bestQuery.amountOut) {
-                bestQuery = Query(_primaryAdapter, _tokenIn, _tokenOut, amountOut);
-            }
-        }
-        return bestQuery;
-    }
-
-    /**
      * Query all adapters
      */
     function queryNoSplit(
@@ -439,16 +366,26 @@ contract AxialRouter is Ownable {
         address _tokenIn, 
         address _tokenOut, 
         uint _maxSteps,
-        uint _gasPrice
+        uint _gasPrice,
+        uint _tokenOutPrice
     ) external view returns (FormattedOfferWithGas memory) {
         require(_maxSteps>0 && _maxSteps<5, 'AxialRouter: Invalid max-steps');
         OfferWithGas memory queries;
         queries.amounts = BytesManipulation.toBytes(_amountIn);
         queries.path = BytesManipulation.toBytes(_tokenIn);
-        // Find the market price between AVAX and token-out and express gas price in token-out currency
-        FormattedOffer memory gasQuery = findBestPath(1e18, WAVAX, _tokenOut, 2);  // Avoid low-liquidity price appreciation
-        // Leave result nWei to preserve digits for assets with low decimal places
-        uint tknOutPriceNwei = gasQuery.amounts[gasQuery.amounts.length-1].mul(_gasPrice/1e9);
+
+        uint tknOutPriceNwei;
+
+        if(_tokenOutPrice == 0) {
+            // Find the market price between AVAX and token-out and express gas price in token-out currency
+            FormattedOffer memory gasQuery = findBestPath(1e18, WAVAX, _tokenOut, 2);  // Avoid low-liquidity price appreciation
+            // Leave result nWei to preserve digits for assets with low decimal places
+            tknOutPriceNwei = gasQuery.amounts[gasQuery.amounts.length-1].mul(_gasPrice/1e9);
+        }
+        else{
+            tknOutPriceNwei = _tokenOutPrice;
+        }
+
         queries = _findBestPathWithGas(
             _amountIn, 
             _tokenIn, 
@@ -475,22 +412,6 @@ contract AxialRouter is Ownable {
     ) internal view returns (OfferWithGas memory) {
         OfferWithGas memory bestOption = _cloneOfferWithGas(_queries);
         uint256 bestAmountOut;
-
-        // If tokenIn & tokenOut are primary tokens then use primary adapters
-        if(isPrimaryToken(_tokenIn) && isPrimaryToken(_tokenOut)) {
-            Query memory queryPrimary = queryNoSplitPrimary(_amountIn, _tokenIn, _tokenOut);
-            if(queryPrimary.amountOut != 0) {
-                uint gasEstimate = IAdapter(queryPrimary.adapter).swapGasEstimate();
-                _addQueryWithGas(
-                    bestOption, 
-                    queryPrimary.amountOut, 
-                    queryPrimary.adapter, 
-                    queryPrimary.tokenOut, 
-                    gasEstimate
-                );
-                return bestOption;
-            }
-        }
 
         // Check if there is a path directly from tokenIn to tokenOut
         Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _tokenOut);
@@ -531,6 +452,11 @@ contract AxialRouter is Ownable {
                 );
                 address tokenOut = BytesManipulation.bytesToAddress(newOffer.path.length, newOffer.path);
                 uint256 amountOut = BytesManipulation.bytesToUint256(newOffer.amounts.length, newOffer.amounts);
+
+                if (_tokenOut == tokenOut && bestOption.gasEstimate == 0 && newOffer.gasEstimate > 0) {
+                    return newOffer;
+                }
+
                 // Check that the last token in the path is the tokenOut and update the new best option if neccesary
                 if (_tokenOut == tokenOut && amountOut > bestAmountOut) {
                     if (newOffer.gasEstimate > bestOption.gasEstimate) {
@@ -627,7 +553,7 @@ contract AxialRouter is Ownable {
         uint _fee
     ) internal returns (uint) {
         uint[] memory amounts = new uint[](_trade.path.length);
-        if (_fee > 0 || MIN_FEE > 0) {
+        if (_fee > 0) {
             // Transfer fees to the claimer account and decrease initial amount
             amounts[0] = _applyFee(_trade.amountIn, _fee);
             IERC20(_trade.path[0]).safeTransferFrom(

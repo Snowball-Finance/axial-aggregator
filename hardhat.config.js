@@ -43,13 +43,17 @@ module.exports = {
     spec: ['test/**/*.spec.js']
   },
   solidity: {
-      version: "0.7.6", 
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 999
-        }  
+    compilers:[
+      {
+        version: "0.7.6", 
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 999
+          }  
+        }
       }
+    ],
   },
   namedAccounts: {
     deployer: {
@@ -65,7 +69,7 @@ module.exports = {
       chainId: 43114,
       forking: {
         url: AVALANCHE_FORK_RPC, 
-        blockNumber: 8487440
+        blockNumber: 10702554 
       },
       accounts: {
         accountsBalance: "10000000000000000000000000", 
