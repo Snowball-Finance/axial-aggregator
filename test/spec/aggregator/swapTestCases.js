@@ -67,7 +67,7 @@ const testCases = [
     {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.DAIe, tokenOutSymbol: 'DAIe' },
     {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.MIM, tokenOutSymbol: 'MIM' }, 
     {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.FRAXc, tokenOutSymbol: 'FRAXc' },
-    {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' }, //TODO: Fails on mainnet. No path found. TUSD -> USDCe
+    {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDCe, tokenOutSymbol: 'USDCe' },
     {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDC, tokenOutSymbol: 'USDC' },
     {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.USDTe, tokenOutSymbol: 'USDTe' },
     {tokenIn: assets.TUSD, tokenInSymbol: 'TUSD' , tokenOut: assets.AVAI, tokenOutSymbol: 'AVAI' },

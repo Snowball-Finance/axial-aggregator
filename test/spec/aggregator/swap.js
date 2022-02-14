@@ -29,7 +29,7 @@ describe('Axial Aggregator - Swap', () => {
 
     testCases.forEach(testCase => {
         it(`Should return path using internal router and swap ${testCase.tokenInSymbol} to ${testCase.tokenOutSymbol} with correct amounts`, async () => { 
-            let amountIn = ethers.utils.parseUnits('100000000', 6)
+            let amountIn = ethers.BigNumber.from(1).mul(ethers.BigNumber.from(10).pow(18));
             let tokenIn = testCase.tokenIn;
             let tokenOut = testCase.tokenOut;
             let steps = 4
