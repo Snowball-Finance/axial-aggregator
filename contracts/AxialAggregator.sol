@@ -121,7 +121,7 @@ contract AxialAggregator is Ownable {
         }
         else{
             (bool success,) = ExternalRouter.delegatecall(
-                abi.encodeWithSelector(IRouter(InternalRouter).swapNoSplit.selector, 
+                abi.encodeWithSelector(IRouter(ExternalRouter).swapNoSplit.selector, 
                 _trade, _to, _fee)
             );
 
