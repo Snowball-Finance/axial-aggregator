@@ -9,7 +9,7 @@ const addresses = require('../../addresses.json')
 const { assets } = addresses
 const { testCases } = require("./swapTestCases")
 
-describe.only('Axial Aggregator - Swap', () => {
+describe('Axial Aggregator - Swap', () => {
 
     let fix;
 
