@@ -29,11 +29,18 @@ describe('Axial Aggregator - Swap', () => {
 
     testCases.forEach(testCase => {
         it(`Should return path using internal router and swap ${testCase.tokenInSymbol} to ${testCase.tokenOutSymbol} with correct amounts`, async () => { 
-            let amountIn = ethers.BigNumber.from(1).mul(ethers.BigNumber.from(10).pow(18));
+            let amountIn;
             let tokenIn = testCase.tokenIn;
             let tokenOut = testCase.tokenOut;
             let steps = 4
             let gasPrice = parseUnits('225', 'gwei');
+
+            const tokenInContract = await ethers.getContractAt('contracts/interface/IERC20.sol:IERC20', tokenIn);
+            const tokenOutContract = await ethers.getContractAt('contracts/interface/IERC20.sol:IERC20', tokenOut);
+
+            const tokenInDecimals = await tokenInContract.decimals();
+
+            amountIn = ethers.BigNumber.from(1).mul(ethers.BigNumber.from(10).pow(tokenInDecimals));
 
             // Top up trader
             let [ topUpAmountIn ] = await fix.PangolinRouter.getAmountsIn(amountIn, [assets.WAVAX, tokenIn])
@@ -83,7 +90,7 @@ describe('Axial Aggregator - Swap', () => {
                 query.useInternalRouter
             );
 
-            const tokenOutContract = await ethers.getContractAt('contracts/interface/IERC20.sol:IERC20', tokenOut)
+            
             const expectedOutAmount = query.bestPath.amounts[query.bestPath.amounts.length-1]
 
             await expect(swap).to.changeTokenBalance(
