@@ -37,7 +37,7 @@ AxialAggregator is the user-facing interface to check prices and make trades.
 Query AxialAggregator for the best trade execution.
 
 **Parameters**
- - **findBestPathParams[Array]:** Array of paramters used for querying aggregator
+ - **findBestPathParams[Array]:** Array of parameters used for querying aggregator
     - **amountIn[BigNumber]:** Amount of tokens being sold
     - **tokenIn[String]:** ERC20 token being sold (pass WAVAX address for AVAX)
     - **tokenOut[String]:** ERC20 token being bought (pass WAVAX address for AVAX)
@@ -55,7 +55,7 @@ aggregator.findBestPath(findBestPathParams)
 Swap AxialAggregator to execute a trade.
 
 **Parameters**
- - **trade[Array]:** Array of paramters used for swapping
+ - **trade[Array]:** Array of parameters used for swapping
     - **amountIn[BigNumber]:** Amount of tokens being sold
     - **amountOut[BigNumber]:** Minimum amount of tokens bought
     - **path[Array]:** Tokens being traded (in respective order)
