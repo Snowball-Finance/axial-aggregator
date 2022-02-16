@@ -129,8 +129,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       TRUSTED_TOKENS, 
       FEE_CLAIMER
     ])
-    log(`V0) AxialRouter`)
-    const deployResult = await deploy("AxialRouterV0", {
+    log(`V0) AxialExternalRouter`)
+    const deployResult = await deploy("AxialExternalRouterV0", {
       from: deployer,
       contract: "AxialRouter",
       gas: 4000000,

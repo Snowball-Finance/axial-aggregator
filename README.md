@@ -24,67 +24,60 @@ Axial Aggregator solves these problems by finding and executing the most profita
 
 ## Mainnet Deployments and Supported Platforms
 
-### Routers
+### Aggregator
 
-AxialRouter is the user-facing interface to check prices and make trades.
+AxialAggregator is the user-facing interface to check prices and make trades.
 
 | Name      | Address |
 | ----------- | ----------- |
-| AxialRouter   | `0xBeD9dfE835cd2bB6775f344Ee5E3431b2CbF31FB` |
+| AxialAggregator   | `0x05F2F176b491ec11555cbE45B99748F999E13933` |
 
 #### Query
 
-Query AxialRouter for the best trade execution.
+Query AxialAggregator for the best trade execution.
 
 **Parameters**
- - **amountIn[BigNumber]:** Amount of tokens being sold
- - **tokenIn[String]:** ERC20 token being sold (pass WAVAX address for AVAX)
- - **tokenOut[String]:** ERC20 token being bought (pass WAVAX address for AVAX)
- - **steps[BigNumber]:** Number of steps within which best path will be searched (max is 4)
- - **gasPrice[BigNumber]:** Gas price in gwei (should be 225 GWEI now, but is planned be dynamic in the future)
+ - **findBestPathParams[Array]:** Array of parameters used for querying aggregator
+    - **amountIn[BigNumber]:** Amount of tokens being sold
+    - **tokenIn[String]:** ERC20 token being sold (pass WAVAX address for AVAX)
+    - **tokenOut[String]:** ERC20 token being bought (pass WAVAX address for AVAX)
+    - **steps[BigNumber]:** Number of steps within which best path will be searched (max is 4)
+    - **gasPrice[BigNumber]:** Gas price in gwei (should be 225 GWEI now, but is planned be dynamic in the future)
 
-###### findBestPathWithGas
+###### findBestPath
 
 ```js
-router.findBestPathWithGas(
-    amountIn, 
-    tokenIn, 
-    tokenOut, 
-    steps, 
-    gasPrice
-)
+aggregator.findBestPath(findBestPathParams)
 ```
 
 #### Swap
 
-Swap AxialRouter to execute a trade.
+Swap AxialAggregator to execute a trade.
 
 **Parameters**
- - **trade[Array]:** Array of paramters used for swapping
+ - **trade[Array]:** Array of parameters used for swapping
     - **amountIn[BigNumber]:** Amount of tokens being sold
     - **amountOut[BigNumber]:** Minimum amount of tokens bought
     - **path[Array]:** Tokens being traded (in respective order)
     - **adapters[Array]:** Adapters through which tokens will be traded (in respective order)
  - **to[String]:** Address where output tokens should be sent to
  - **fee[BigNumber]:** Optional fee in bps taken before the trades
+ - **useInternalRouter[bool]:** Flag to determine whether or not internal router should be used
 
 ###### swapNoSplit
 
 ```js
-router.swapNoSplit(trade, to, fee)
+aggregator.swap(trade, to, fee, useInternalRouter)
 ```
 
-###### swapNoSplitToAVAX
+### Routers
 
-```js
-router.swapNoSplitToAVAX(trade, to, fee);
-```
+AxialRouters encapsulate the logic required to query groups of adapters for the best price & allow swaps to be executed. Axial Aggregator has two routers, one for Axial owned pools and another for external pools
 
-###### swapNoSplitFromAVAX
-
-```js
-router.swapNoSplitFromAVAX(trade, to, fee, { value: amountIn });
-```
+| Name      | Address |
+| ----------- | ----------- |
+| AxialRouter(Internal)   | `0x08c28A3670f5821F6B2D763437816b67010f53D4` |
+| AxialRouter(External)   | `0x547730f642913E50ad8B2Db2dE9F3479E8015BC1` |
 
 
 ### Adapters
